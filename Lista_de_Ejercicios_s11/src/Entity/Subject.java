@@ -5,7 +5,7 @@
 package Entity;
 
 public interface Observado {
-    void agregarSuscriptor(Observer observer);
-    void eliminarSuscriptor(Observer observer);
-    void notificarSuscriptores(String mensaje);
+    void agregarObservador(Observer observer);
+    void eliminarObservador(Observer observer);
+    void notificarObservadores(String mensaje);
 }
