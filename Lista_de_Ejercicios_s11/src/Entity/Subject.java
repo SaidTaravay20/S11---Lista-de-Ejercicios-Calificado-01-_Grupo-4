@@ -4,7 +4,7 @@
  */
 package Entity;
 
-public interface Subject {
+public interface Observado {
     void agregarSuscriptor(Observer observer);
     void eliminarSuscriptor(Observer observer);
     void notificarSuscriptores(String mensaje);
