@@ -5,5 +5,5 @@
 package Entity;
 
 public interface Observer {
-    void update(String mensaje);
+    void actualizar(String mensaje);
 }
