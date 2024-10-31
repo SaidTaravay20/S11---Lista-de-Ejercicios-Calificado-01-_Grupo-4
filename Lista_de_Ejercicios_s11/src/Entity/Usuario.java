@@ -28,9 +28,8 @@ public class Usuario implements Observer {
     }
 
     @Override
-    public void update(String mensaje) {
+    public void actualizar(String mensaje) {
         System.out.println("Notificación para " + nombre + ": " + mensaje);
     }
 
-    // Getters y setters adicionales según sea necesario
 }
