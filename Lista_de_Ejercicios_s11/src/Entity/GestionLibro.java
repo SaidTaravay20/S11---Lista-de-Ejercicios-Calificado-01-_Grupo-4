@@ -9,41 +9,47 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class GestionLibro implements Subject {
-    //lista de libro
-    private List<Libro> listaLibros;
-    private List<Observer> suscriptores;
+public class GestionLibro implements Observado {
 
-    //inicializadoress
+    private List<Libro> listaLibros;
+    private LibroRepositorio repositorio;
+    private List<Observador> observadores;
+
+
     public GestionLibro() {
-        this.listaLibros = new ArrayList<>();
-        this.suscriptores = new ArrayList<>();
+        this.repositorio = new LibroRepositorio();
+        this.listaLibros = repositorio.cargarLibros();
+        this.observadores = new ArrayList<>();
     }
 
-    // Método para agregar un libro a la lista
+
     public void agregarLibro(Libro libro) {
         listaLibros.add(libro);
-        System.out.println("Libro agregado exitosamente: " + libro.getTitulo());
+        repositorio.guardarLibros(listaLibros);
+        System.out.println("Libro agregado: " + libro.getTitulo());
+        if ("LIBRE".equalsIgnoreCase(libro.getEstadoPrestamo())) {
+            notificarObservadores("El libro '" + libro.getTitulo() + "' está disponible.");
+        }
     }
 
-    // Método para listar todos los libros en la biblioteca
+
     public void listarLibros() {
         if (listaLibros.isEmpty()) {
-            System.out.println("No hay libros en la biblioteca.");
+            System.out.println("No hay libros en la biblioteca");
         } else {
             System.out.println("Lista de libros en la biblioteca:");
             listaLibros.forEach(System.out::println);
         }
     }
+    
 
-    // Método para buscar un libro por título
     public Optional<Libro> buscarLibroPorTitulo(String titulo) {
         return listaLibros.stream()
                 .filter(libro -> libro.getTitulo().equalsIgnoreCase(titulo))
                 .findFirst();
     }
 
-    // Método para buscar libros por autor o género usando expresiones lambda
+
     public List<Libro> buscarLibrosPorAutor(String autor) {
         return listaLibros.stream()
                 .filter(libro -> libro.getAutor().equalsIgnoreCase(autor))
@@ -56,25 +62,25 @@ public class GestionLibro implements Subject {
                 .collect(Collectors.toList());
     }
 
-    // Método para eliminar un libro por título
+
     public boolean eliminarLibro(String titulo) {
         Optional<Libro> libroAEliminar = buscarLibroPorTitulo(titulo);
         if (libroAEliminar.isPresent()) {
             listaLibros.remove(libroAEliminar.get());
-            System.out.println("Libro eliminado exitosamente: " + titulo);
+            repositorio.guardarLibros(listaLibros);
+            System.out.println("Libro eliminado: " + titulo);
             return true;
         } else {
-            System.out.println("Libro no encontrado: " + titulo);
+            System.out.println("Libro no existe: " + titulo);
             return false;
         }
     }
 
-    // Método para actualizar el estado de préstamo de un libro
+
     public boolean actualizarEstadoPrestamo(String titulo, String nuevoEstado, String fechaLiberacion) {
         Optional<Libro> libroAActualizar = buscarLibroPorTitulo(titulo);
         if (libroAActualizar.isPresent()) {
-            Libro libro = libroAActualizar.get();
-            // Crear una nueva instancia de Libro usando el patrón Builder
+            Libro libro = libroAActualizar.get();           
             Libro libroActualizado = new Libro.Builder()
                     .setTitulo(libro.getTitulo())
                     .setAutor(libro.getAutor())
@@ -85,39 +91,36 @@ public class GestionLibro implements Subject {
                     .setEstadoPrestamo(nuevoEstado)
                     .setFechaLiberacion(fechaLiberacion)
                     .build();
-            // Reemplazar el libro en la lista
             listaLibros.set(listaLibros.indexOf(libro), libroActualizado);
-            System.out.println("Estado de préstamo actualizado para el libro: " + titulo);
+            repositorio.guardarLibros(listaLibros);
+            System.out.println("Se actualizó el préstamo para el libro: " + titulo);
+
+
+            if ("LIBRE".equalsIgnoreCase(nuevoEstado)) {
+                notificarObservadores("El libro '" + titulo + "' está ahora disponible.");
+            }
             return true;
         } else {
             System.out.println("Libro no encontrado: " + titulo);
             return false;
         }
     }
+
+
     @Override
-    public void agregarSuscriptor(Observer observer) {
-        suscriptores.add(observer);
-        System.out.println("Suscriptor añadido exitosamente.");
+    public void agregarObservador(Observador observador) {
+        observadores.add(observador);
     }
 
     @Override
-    public void eliminarSuscriptor(Observer observer) {
-        suscriptores.remove(observer);
-        System.out.println("Suscriptor eliminado exitosamente.");
+    public void removerObservador(Observador observador) {
+        observadores.remove(observador);
     }
 
     @Override
-    public void notificarSuscriptores(String mensaje) {
-        for (Observer suscriptor : suscriptores) {
-            suscriptor.update(mensaje);
+    public void notificarObservadores(String mensaje) {
+        for (Observador observador : observadores) {
+            observador.actualizar(mensaje);
         }
-    }
-
-    // Método para notificar cuando un libro esté disponible
-    public void notificarDisponibilidadLibro(String tituloLibro) {
-        Optional<Libro> libro = buscarLibroPorTitulo(tituloLibro);
-        if (libro.isPresent() && libro.get().getEstadoPrestamo().equals("LIBRE")) {
-            notificarSuscriptores("El libro '" + tituloLibro + "' ahora está disponible.");
-        } 
     }
 }
